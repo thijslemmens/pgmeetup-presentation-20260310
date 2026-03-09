@@ -107,6 +107,7 @@ section { font-size: 20px; }
 | Query planning        | Value-column statistics mix all property types — per-attribute selectivity is invisible to the planner | Accurate per-column statistics |
 | Index efficiency      | Index on `(qname_id, string_value)` covers all attributes                                              | Targeted per-column indexes    |
 | Tooling compatibility | Breaks ORMs, analytics tools                                                                           | Works out of the box           |
+| Search performance     | Sync to Solr/Elasticsearch — operational heavy, denormalizes relations, eventual consistency   | Native full-text search, joins, transactional consistency |
 
 > EAV trades correctness and performance for schema flexibility — but you can have both.
 
