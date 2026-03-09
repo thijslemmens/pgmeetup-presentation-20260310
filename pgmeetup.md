@@ -113,6 +113,90 @@ section { font-size: 20px; }
 
 ---
 
+# How Bad Is It? A Real Migration
+
+<div class="columns">
+<div>
+
+### The scenario
+
+- **250 million** documents
+- **60 attributes** each → 15 billion property rows
+- EAV model on Oracle
+
+</div>
+<div>
+
+### How large is the Oracle database?
+
+| | |
+|---|---|
+| **A** | < 500 GB |
+| **B** | 500 GB – 2 TB |
+| **C** | 2 TB – 5 TB |
+| **D** | > 5 TB |
+
+</div>
+</div>
+
+---
+
+<!-- _class: dark -->
+
+# The EAV Oracle database: **6 TB**
+
+- 15 billion property rows, each with 6+ typed value columns
+- Indexes on `(qname_id, *_value)` for every attribute type
+- Oracle block overhead, undo segments, redo logs multiply the footprint
+
+> Now — same data, native PostgreSQL schema. Your guess?
+
+---
+
+# Same Data, Native PostgreSQL Schema
+
+<div class="columns">
+<div>
+
+### What changes
+
+- One row per document
+- Typed columns — no attribute explosion
+- No Oracle overhead
+
+</div>
+<div>
+
+### How large is the PostgreSQL database?
+
+| | |
+|---|---|
+| **A** | Still ~6 TB |
+| **B** | 1 TB – 3 TB |
+| **C** | 250 GB – 1 TB |
+| **D** | < 250 GB |
+
+</div>
+</div>
+
+---
+
+<!-- _class: dark -->
+
+# The ContentGrid PostgreSQL database: **~300 GB**
+
+- 250M rows of typed data
+- Targeted indexes
+- No attribute row explosion, no Oracle overhead
+
+<div class="highlight">
+
+**20× smaller — by fixing the data model**
+
+</div>
+
+---
+
 <!-- _class: section -->
 
 # Our Approach
