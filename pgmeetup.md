@@ -183,7 +183,7 @@ section { font-size: 20px; }
 
 <!-- _class: dark -->
 
-# The ContentGrid PostgreSQL database: **~300 GB**
+# The ContentGrid database: **~300 GB**
 
 - 250M rows of typed data
 - Targeted indexes
@@ -197,11 +197,188 @@ section { font-size: 20px; }
 
 ---
 
+# Storage at a Glance
+
+<style scoped>
+.chart-wrap { display: flex; align-items: flex-end; justify-content: center; gap: 100px; height: 320px; margin-top: 60px; }
+.bar-group { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 8px; }
+.bar-value { font-weight: 700; font-size: 22px; color: #084772; }
+.bar { border-radius: 6px 6px 0 0; width: 160px; }
+.bar-oracle { background: #ff0000; height: 200px; }
+.bar-pg { background: #1db41d; height: 10px; }
+.bar-label { font-size: 17px; font-weight: 600; color: #084772; text-align: center; line-height: 1.3; margin-top: 10px; }
+.badge { background: #084772; color: #fff; border-radius: 20px; font-size: 14px; font-weight: 700; padding: 2px 12px; margin-top: 4px; display: inline-block; }
+</style>
+
+<div class="chart-wrap">
+  <div class="bar-group">
+    <div class="bar-value">6 TB</div>
+    <div class="bar bar-oracle"></div>
+    <div class="bar-label">Alfresco / Oracle<br><span class="badge">EAV</span></div>
+  </div>
+  <div class="bar-group">
+    <div class="bar-value">~300 GB</div>
+    <div class="bar bar-pg"></div>
+    <div class="bar-label">ContentGrid / PostgreSQL<br><span class="badge">Native schema</span></div>
+  </div>
+</div>
+
+---
+
 <!-- _class: section -->
 
 # Our Approach
 
 ## Generating native schemas from semantic models
+
+---
+
+# The Management Platform
+
+<style scoped>
+.flow { display: flex; align-items: stretch; gap: 0; margin: 28px 0 20px; }
+.comp { background: #f5f8fc; border: 2px solid #d0e4f0; border-top: 4px solid #019ee3; border-radius: 8px; padding: 18px 16px; flex: 1; }
+.comp h3 { color: #084772; margin: 0 0 6px 0; font-size: 0.95em; letter-spacing: 0.02em; }
+.comp p { margin: 0; font-size: 0.72em; color: #5a7a95; line-height: 1.4; }
+.arr { display: flex; align-items: center; padding: 0 10px; color: #019ee3; font-size: 1.6em; font-weight: 300; }
+.tagline { background: #019ee3; color: #fff; border-radius: 8px; padding: 14px 24px; text-align: center; font-size: 0.88em; font-weight: 600; letter-spacing: 0.01em; }
+</style>
+
+<div class="flow">
+  <div class="comp"><h3>Architect</h3><p>Source of truth for the domain model — entities, attributes, relations</p></div>
+  <div class="arr">→</div>
+  <div class="comp"><h3>Scribe</h3><p>Compiles model changes into:<br />
+      &#x2022; JSON model<br />
+      &#x2022; Flyway SQL migrations<br />
+      &#x2022; OPA policies</p></div>
+  <div class="arr">→</div>
+  <div class="comp"><h3>Captain</h3><p>
+  &#x2022; Provisions database <br />
+  &#x2022; manages credentials <br />
+  &#x2022; deployment</p></div>
+</div>
+
+<div class="tagline">Every model change → versioned, reviewed SQL migration &nbsp;·&nbsp; Schema always reflects the model — no manual DDL</div>
+
+---
+
+# The Runtime Platform
+
+<style scoped>
+.rt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 8px; }
+.flow-col h3 { color: #084772; font-size: 0.9em; margin: 0 0 14px; border-bottom: 2px solid #d0e4f0; padding-bottom: 8px; }
+.step { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+.step-icon { background: #019ee3; color: #fff; border-radius: 50%; width: 22px; height: 22px; font-size: 0.7em; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+.step-text { font-size: 0.78em; color: #1a2b3c; line-height: 1.45; }
+.step-text code { background: #f5f8fc; border: 1px solid #d0e4f0; border-radius: 4px; padding: 1px 5px; font-size: 0.9em; color: #084772; }
+.callout { background: #084772; color: #fff; border-radius: 8px; padding: 11px 16px; font-size: 0.78em; font-weight: 600; margin-top: 14px; text-align: center; }
+</style>
+
+<div class="rt-grid">
+<div class="flow-col">
+
+### Dynamic SQL from the model
+
+<div class="step"><div class="step-icon">1</div><div class="step-text">Model artifact loaded at startup — no fixed entity classes or ORM mappings</div></div>
+<div class="step"><div class="step-icon">2</div><div class="step-text">JOOQ builds type-safe SQL at runtime from the active model</div></div>
+<div class="step"><div class="step-icon">3</div><div class="step-text">Pagination, sorting, and relation traversal all generated dynamically</div></div>
+
+</div>
+<div class="flow-col">
+
+### ABAC pushed down to SQL
+
+<div class="step"><div class="step-icon">1</div><div class="step-text">OPA evaluates access policy via <strong>partial evaluation</strong> — without binding user data</div></div>
+<div class="step"><div class="step-icon">2</div><div class="step-text">Returns a residual expression:<br><code>department = 'sales' OR status = 'published'</code></div></div>
+<div class="step"><div class="step-icon">3</div><div class="step-text">App Server translates it into a SQL <code>WHERE</code> clause appended to every query</div></div>
+<div class="callout">Unauthorized data never leaves the database</div>
+
+</div>
+</div>
+
+---
+
+# Partial Evaluation: The Key Insight
+
+<style scoped>
+.comparison { display: flex; gap: 2rem; margin: 1.2rem 0; }
+.col { flex: 1; background: #f5f8fc; border-radius: 6px; padding: 1rem 1.2rem; }
+.col.bad { border-top: 4px solid #c0392b; }
+.col.good { border-top: 4px solid #019ee3; }
+.col h3 { margin: 0 0 0.6rem; font-size: 0.9em; color: #1a2b3c; }
+.col pre { font-size: 0.62em; margin: 0.4rem 0; background: #fff; border: 1px solid #d0e4f0; border-radius: 4px; padding: 0.5rem; color: #1a2b3c; }
+.col .note { font-size: 0.68em; color: #1a2b3c; font-weight: 600; margin-top: 0.6rem; }
+.highlight { background: #084772; color: #fff; border-radius: 6px; padding: 0.6rem 1rem; font-size: 0.78em; font-weight: 600; margin-top: 1rem; text-align: center; }
+</style>
+
+<div class="comparison">
+<div class="col bad">
+
+### Naïve approach
+
+```
+for each row in invoices:     ← full table scan
+  if OPA.check(row, user):    ← N network calls
+    return row
+```
+
+<div class="note">N rows fetched, N OPA calls, unauthorized data in memory</div>
+
+</div>
+<div class="col good">
+
+### Partial evaluation
+
+```
+OPA.partial_eval(policy, user)  ← 1 call, no entity data
+    → residual: dept='sales'
+      OR status='published'
+
+SELECT * FROM invoices
+WHERE dept='sales'
+  OR status='published'          ← filtered at the DB
+```
+
+<div class="note">1 OPA call, unauthorized rows never leave PostgreSQL</div>
+
+</div>
+</div>
+
+<div class="highlight">The security boundary is enforced inside the database — not in application memory</div>
+
+---
+
+# From Policy Rule to SQL Filter
+
+<style scoped>
+.steps { display: flex; flex-direction: column; gap: 0.4rem; margin: 0.5rem 0; }
+.row { display: grid; grid-template-columns: 13rem 1fr; align-items: center; background: #f5f8fc; border-left: 4px solid #019ee3; border-radius: 6px; padding: 0.5rem 1rem; gap: 1rem; }
+.row-label { color: #084772; font-weight: 700; font-size: 0.8em; white-space: nowrap; }
+.row pre { margin: 0; font-size: 0.72em; background: #fff; border: 1px solid #d0e4f0; border-radius: 4px; padding: 0.4rem 0.75rem; color: #1a2b3c; }
+.note { font-size: 0.65em; color: #5a7a95; margin-top: 0.4rem; font-style: italic; }
+.highlight-light { background: #084772; color: #fff; border-radius: 6px; padding: 0.55rem 1rem; font-size: 0.78em; font-weight: 600; margin-top: 0.6rem; text-align: center; }
+</style>
+
+<div class="steps">
+<div class="row">
+<div class="row-label">① Policy condition</div>
+<pre>entity.department == user.department
+OR entity.status == "published"</pre>
+</div>
+<div class="row">
+<div class="row-label">② OPA partial eval</div>
+<pre>OPA.partial_eval(policy, user)
+  → dept == user.dept  OR  status == "published"</pre>
+</div>
+<div class="row">
+<div class="row-label">③ SQL WHERE (JOOQ)</div>
+<pre>SELECT * FROM invoices
+WHERE department = 'sales' OR status = 'published'</pre>
+</div>
+</div>
+
+<div class="note">Defined in Architect UI → compiled to Rego by Scribe → evaluated by OPA (1 call, result in Gateway JWT) → App Server builds JOOQ predicate</div>
+<div class="highlight-light">Unauthorized rows never leave the database — the filter runs inside PostgreSQL</div>
 
 ---
 
@@ -262,6 +439,145 @@ CREATE TABLE article (
 
 </div>
 </div>
+
+---
+
+<!-- _class: "" -->
+<style scoped>
+.layout { display: flex; gap: 2em; align-items: flex-start; margin-top: 0.4em; }
+.layout > .left { flex: 0 0 42%; }
+.layout > .right { flex: 1; }
+.chain-box {
+  background: #f5f8fc; border-radius: 6px;
+  padding: 0.55em 0.9em 0.5em; margin-bottom: 0;
+}
+.chain-box.api  { border-top: 4px solid #019ee3; }
+.chain-box.view { border-top: 4px solid #084772; }
+.chain-box.base { border-top: 4px solid #0e7c6b; }
+.chain-box .title { font-weight: 700; font-size: 0.82em; color: #0f172a; }
+.chain-box .sub   { font-size: 0.68em; color: #475569; margin-top: 0.15em; }
+.arr { text-align: center; font-size: 1.1em; color: #94a3b8;
+  line-height: 1.4; margin: 0.15em 0; }
+.col-label { font-size: 0.7em; font-weight: 600; color: #1e3a5f; margin-bottom: 0.35em; }
+.code-block { background: #f8fafc; color: #1a1a2e; border-left: 4px solid #2563eb;
+  border-radius: 4px; padding: 0.65em 0.9em; font-family: monospace;
+  font-size: 0.58em; line-height: 1.6; }
+.hl { background: #fef9c3; border-radius: 2px; }
+.callout { background: #0f172a; color: #f1f5f9; border-radius: 5px;
+  padding: 0.45em 1.2em; margin-top: 0.75em; font-size: 0.68em;
+  font-style: italic; text-align: center; }
+</style>
+
+# API Schema Versioning
+
+## Each released API version gets its own PostgreSQL schema
+
+<div class="layout">
+<div class="left">
+
+<div class="chain-box api">
+  <div class="title">API client</div>
+  <div class="sub">search_path = "V3"</div>
+</div>
+<div class="arr">▼</div>
+<div class="chain-box view">
+  <div class="title">Schema "V3"</div>
+  <div class="sub">compatibility view<br>projects old column set</div>
+</div>
+<div class="arr">▼</div>
+<div class="chain-box base">
+  <div class="title">Base tables</div>
+  <div class="sub">current physical schema</div>
+</div>
+
+</div>
+<div class="right">
+
+<div class="col-label">Dropped column → null cast</div>
+<pre class="code-block">CREATE OR REPLACE VIEW "V3"."claim_document" AS
+  SELECT id, _version,
+    claim_number, source,
+    <span class="hl">null::timestamptz  -- "date_received" was dropped</span>
+      AS date_received,
+    audit__created_by_id
+  FROM claim_document;  -- base table</pre>
+
+</div>
+</div>
+
+<div class="callout">INSTEAD OF triggers make views fully writable — no app code changes needed.</div>
+
+---
+
+<!-- _class: "" -->
+<style scoped>
+.cards { display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1.1em; margin-top: 0.5em; }
+.card { background: #f5f8fc; border-radius: 7px; padding: 0.7em 0.85em 0.75em; }
+.card.blue   { border-top: 4px solid #019ee3; }
+.card.teal   { border-top: 4px solid #0e7c6b; }
+.card.amber  { border-top: 4px solid #d97706; }
+.card-icon { font-size: 1.3em; line-height: 1; margin-bottom: 0.2em; }
+.card-title { font-weight: 700; font-size: 0.78em; color: #0f172a;
+  margin-bottom: 0.35em; }
+.code-block { background: #0f172a; color: #e2e8f0; border-radius: 4px;
+  padding: 0.5em 0.75em; font-family: monospace;
+  font-size: 0.58em; line-height: 1.55; margin: 0.4em 0; }
+.pills { display: flex; flex-wrap: wrap; gap: 0.3em; margin: 0.4em 0; }
+.pill { background: #e0f2fe; color: #0369a1; border-radius: 99px;
+  padding: 0.1em 0.55em; font-size: 0.58em; font-weight: 600; font-family: monospace; }
+.step-row { display: flex; align-items: baseline; gap: 0.45em;
+  font-size: 0.64em; margin: 0.3em 0; color: #1e293b; }
+.step-badge { background: #084772; color: #fff; border-radius: 50%;
+  width: 1.4em; height: 1.4em; display: flex; align-items: center;
+  justify-content: center; font-size: 0.78em; font-weight: 700;
+  flex-shrink: 0; }
+.card-tag { font-size: 0.6em; color: #64748b; font-style: italic;
+  margin-top: 0.5em; }
+.callout { background: #0f172a; color: #f1f5f9; border-radius: 5px;
+  padding: 0.45em 1.2em; margin-top: 0.75em; font-size: 0.68em;
+  font-style: italic; text-align: center; }
+</style>
+
+# Safe Schema Evolution Patterns
+
+## Generated migrations follow PostgreSQL best practices
+
+<div class="cards">
+
+<div class="card blue">
+  <div class="card-icon">🚫🔒</div>
+  <div class="card-title">CREATE INDEX CONCURRENTLY</div>
+  <div style="font-size:0.63em;color:#334155">No table lock</div>
+  <pre class="code-block">CREATE INDEX CONCURRENTLY idx
+  ON t (normalize(col, NFKC));</pre>
+  <div class="card-tag">Separate migration file</div>
+</div>
+
+<div class="card teal">
+  <div class="card-icon" style="font-size:1.5em;font-family:serif">ƒ(x)</div>
+  <div class="card-title">IMMUTABLE index function</div>
+  <div class="pills">
+    <span class="pill">IMMUTABLE</span>
+    <span class="pill">PARALLEL SAFE</span>
+    <span class="pill">RETURNS NULL ON NULL INPUT</span>
+  </div>
+  <pre class="code-block">lower(normalize(unaccent(arg), NFKC))</pre>
+  <div class="card-tag">Safe in index expressions</div>
+</div>
+
+<div class="card amber">
+  <div class="card-icon">🛡️</div>
+  <div class="card-title">Safe NOT NULL</div>
+  <div class="step-row"><div class="step-badge">1</div><code style="font-size:0.95em">ADD COLUMN col text NULL</code></div>
+  <div class="step-row"><div class="step-badge">2</div><code style="font-size:0.95em">UPDATE … SET col = …</code></div>
+  <div class="step-row"><div class="step-badge">3</div><code style="font-size:0.95em">SET NOT NULL</code></div>
+  <div class="card-tag">Zero-downtime constraint</div>
+</div>
+
+</div>
+
+<div class="callout">All patterns generated automatically — the model describes intent, the platform generates safe SQL.</div>
 
 ---
 
