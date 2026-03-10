@@ -7,7 +7,7 @@ paginate: false
 <!-- _class: title -->
 
 <style scoped>
-.pgug-logo { position: absolute; top: 28px; left: 48px; height: 64px; width: auto; }
+.pgug-logo { position: absolute; top: 22px; left: 42px; height: 64px; width: auto; border-radius: 10px; box-shadow: 0 2px 14px rgba(0,0,0,0.35); }
 </style>
 
 <img src="clean_489515161.avif" alt="PostgreSQL User Group Belgium" class="pgug-logo">
