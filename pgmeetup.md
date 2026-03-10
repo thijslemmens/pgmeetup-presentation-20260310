@@ -227,7 +227,7 @@ CREATE TABLE articles (
 
 | Concern               | EAV                                                  | Native schema               |
 | --------------------- | ---------------------------------------------------- | --------------------------- |
-| Type safety           | One column per type; wrong column = silent data loss | Enforced by the column type |
+| Type safety           | One column per data type                             | Enforced by the column type |
 | Constraints           | `NOT NULL`, `UNIQUE` cannot be expressed             | Declarative, DB-enforced    |
 | Referential integrity | Application-enforced                                 | Foreign keys                |
 
@@ -245,9 +245,9 @@ section { font-size: 20px; }
 | --------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------ |
 | Query complexity      | Reconstruct one node via dozens of `JOIN`s                                                             | Plain `SELECT`                 |
 | Query planning        | Value-column statistics mix all property types — per-attribute selectivity is invisible to the planner | Accurate per-column statistics |
-| Index efficiency      | Index on `(qname_id, string_value)` covers all attributes                                              | Targeted per-column indexes    |
+| Index efficiency      | Index on `(qname_id, string_value)` covers all attributes of type string                               | Targeted per-column indexes    |
 | Tooling compatibility | Breaks ORMs, analytics tools                                                                           | Works out of the box           |
-| Search performance     | Sync to Solr/Elasticsearch — operational heavy, denormalizes relations, eventual consistency   | Native full-text search, joins, transactional consistency |
+| Search performance    | Sync to Solr/Elasticsearch — operational heavy, denormalizes relations, eventual consistency           | Native full-text search, joins, transactional consistency |
 
 > EAV trades correctness and performance for schema flexibility — but you can have both.
 
