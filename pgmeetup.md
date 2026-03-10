@@ -60,7 +60,8 @@ Thijs Lemmens · March 2026
 1. The problem with EAV / generic data models
 2. Model-driven schema generation
 3. Runtime platform & row-level security
-4. Conclusions
+4. Roadmap
+5. Conclusions
 
 ---
 
@@ -637,6 +638,15 @@ WHERE department = 'sales' OR status = 'published'</pre>
 
 <div class="note">Defined in Architect UI → compiled to Rego by Scribe → evaluated by OPA (1 call, result in Gateway JWT) → App Server builds JOOQ predicate</div>
 <div class="highlight-light">Unauthorized rows never leave the database — the filter runs inside PostgreSQL</div>
+
+---
+
+# Roadmap
+
+- Full text search
+- Facetted Search
+- Searching over multiple entities (tables)
+- Versioning (QDA)
 
 ---
 
