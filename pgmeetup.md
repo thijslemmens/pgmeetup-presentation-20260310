@@ -58,8 +58,8 @@ Thijs Lemmens · March 2026
 # Agenda
 
 1. The problem with EAV / generic data models
-2. Model-driven schema generation
-3. Runtime platform & row-level security
+2. Intro to ContentGrid
+3. Attribute based access controll
 4. Roadmap
 5. Conclusions
 
@@ -302,7 +302,6 @@ section { font-size: 20px; }
 
 - One row per document
 - Typed columns — no attribute explosion
-- No Oracle overhead
 
 </div>
 <div>
@@ -627,7 +626,7 @@ OR entity.status == "published"</pre>
 <div class="row">
 <div class="row-label">② OPA partial eval</div>
 <pre>OPA.partial_eval(policy, user)
-  → dept == user.dept  OR  status == "published"</pre>
+  → deptartment == "sales"  OR  status == "published"</pre>
 </div>
 <div class="row">
 <div class="row-label">③ SQL WHERE (JOOQ)</div>
