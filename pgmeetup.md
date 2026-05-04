@@ -10,13 +10,13 @@ paginate: false
 .pgug-logo { position: absolute; top: 22px; left: 42px; height: 64px; width: auto; border-radius: 10px; box-shadow: 0 2px 14px rgba(0,0,0,0.35); }
 </style>
 
-<img src="clean_489515161.avif" alt="PostgreSQL User Group Belgium" class="pgug-logo">
+<img src="pgconfbe-logo.svg" alt="PGConf.BE 2026" class="pgug-logo">
 
 # Scaling Semantic Models
 
 ## Bespoke PostgreSQL Schemas at SaaS Scale
 
-Thijs Lemmens · March 2026
+Thijs Lemmens · May 2026
 
 ---
 
@@ -57,11 +57,131 @@ Thijs Lemmens · March 2026
 
 # Agenda
 
-1. The problem with EAV / generic data models
-2. Intro to ContentGrid
-3. Attribute based access controll
-4. Roadmap
-5. Conclusions
+1. ECM in 60 seconds
+2. The problem with EAV / generic data models
+3. Intro to ContentGrid
+4. Attribute based access control
+5. Search
+6. Conclusions
+
+---
+
+<!-- _class: section -->
+
+# ECM in 60 seconds
+
+## Documents, metadata, and the customers who keep changing both
+
+---
+
+# What ECM Systems Actually Do
+
+<style scoped>
+section { font-size: 22px; }
+h1 { font-size: 38px; margin-bottom: 14px; padding-bottom: 8px; }
+.ecm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 6px; }
+.ecm-card { background: #f5f8fc; border-radius: 8px; padding: 14px 18px; border-top: 4px solid #019ee3; }
+.ecm-card.right { border-top-color: #0e7c6b; }
+.ecm-card .label { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: #084772; text-transform: uppercase; margin-bottom: 8px; }
+.ecm-card ul { margin: 0; padding-left: 1.1em; }
+.ecm-card li { margin-bottom: 6px; line-height: 1.4; color: #1a2b3c; }
+.ecm-card li b { color: #084772; }
+.ecm-callout { background: #f5f8fc; border-left: 4px solid #019ee3; border-radius: 6px; padding: 10px 18px; margin-top: 18px; font-weight: 600; color: #084772; font-size: 22px; text-align: center; }
+</style>
+
+<div class="ecm-grid">
+<div class="ecm-card">
+<div class="label">Where you find ECM</div>
+<ul>
+<li><b>Insurance</b> — claim files: correspondence, expert reports, photos, payouts</li>
+<li><b>Banking</b> — KYC packs, contracts, statements</li>
+<li><b>HR</b> — employee files, contracts, reviews</li>
+<li><b>Legal · engineering · government</b> — case files, drawings, citizen records</li>
+</ul>
+</div>
+<div class="ecm-card right">
+<div class="label">What the system has to do</div>
+<ul>
+<li>Store documents alongside their structured metadata</li>
+<li><b>Search</b> — by metadata filters and full-text content (the primary user action)</li>
+<li>Access control per document, often per attribute</li>
+<li>Retention, versioning, audit — data outlives the apps</li>
+<li>Volume: millions to billions of objects per tenant</li>
+</ul>
+</div>
+</div>
+
+<div class="ecm-callout">The metadata is the database problem. Blob storage is the easy part.</div>
+
+---
+
+# The Flexibility Trade-off
+
+<style scoped>
+section { font-size: 22px; }
+h1 { font-size: 38px; margin-bottom: 12px; padding-bottom: 8px; }
+.intro { margin: 0 0 14px; line-height: 1.5; color: #1a2b3c; }
+.intro code { background: #eef3f9; color: #084772; padding: 1px 6px; border-radius: 4px; font-size: 0.92em; }
+.paths { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: stretch; }
+.path { background: #f5f8fc; border-radius: 8px; padding: 14px 18px; border-top: 4px solid #019ee3; }
+.path.alt { border-top-color: #0e7c6b; }
+.path .opt { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; color: #084772; text-transform: uppercase; margin-bottom: 4px; }
+.path .title { font-size: 19px; font-weight: 700; color: #1a2b3c; margin-bottom: 10px; line-height: 1.25; }
+.path ul { list-style: none; margin: 0; padding: 0; }
+.path li { margin-bottom: 4px; line-height: 1.4; font-size: 17px; padding-left: 18px; position: relative; }
+.path li.pro { color: #14532d; }
+.path li.con { color: #7c2d2d; }
+.path li::before { position: absolute; left: 0; font-weight: 700; }
+.path li.pro::before { content: "+"; color: #14532d; }
+.path li.con::before { content: "−"; color: #7c2d2d; }
+.note { margin-top: 14px; background: #f5f8fc; border-left: 4px solid #019ee3; border-radius: 6px; padding: 10px 18px; font-size: 20px; color: #084772; text-align: center; }
+</style>
+
+<div class="intro">Each customer defines their own document types — <code>claim</code>, <code>policy_endorsement</code>, <code>expert_report</code> — and they keep changing. A product serving thousands of tenants has to absorb that variability somewhere. There are two honest places to put it.</div>
+
+<div class="paths">
+<div class="path">
+<div class="opt">Option 1</div>
+<div class="title">One generic schema for every customer</div>
+<ul>
+<li class="pro">One model fits any customer's types</li>
+<li class="pro">No DDL when types change</li>
+<li class="con">Database can't see types or constraints</li>
+<li class="con">Indexes and statistics fight every query</li>
+</ul>
+</div>
+<div class="path alt">
+<div class="opt">Option 2</div>
+<div class="title">A bespoke schema per customer</div>
+<ul>
+<li class="pro">Native columns, types, indexes</li>
+<li class="pro">Constraints enforced by the database</li>
+<li class="con">Thousands of schemas to provision and migrate</li>
+<li class="con">DDL has to be automated, versioned, and safe</li>
+</ul>
+</div>
+</div>
+
+<div class="note">Both are legitimate engineering choices. The rest of the talk is about making the second one work.</div>
+
+---
+
+# How Other ECMs Store Metadata
+
+## The market splits across five patterns
+
+<style scoped>
+section { font-size: 19px; }
+</style>
+
+| Approach                | Systems                                                                                | Per-document cost                          |
+| ----------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------ |
+| **EAV / property rows** | Alfresco · OnBase (one table per keyword type)                                         | **N joins for N attributes**               |
+| Wide allocated table    | SharePoint (`AllUserData` sparse) · FileNet (`DocVersion`, columns added via `ALTER`)  | 1 row, but rigid slots / NULL noise        |
+| Table-per-type          | Documentum — `<type>_s` / `<type>_r` joined up the inheritance chain                   | Joins per inheritance level                |
+| Schema mapping          | Nuxeo VCS — XSD schema → tables, complex types → child tables via FK                   | Native columns, DDL frozen at type design  |
+| Document store          | Nuxeo DBS — MongoDB / MarkLogic                                                        | No SQL · no constraints · no joins         |
+
 
 ---
 
@@ -75,7 +195,7 @@ Thijs Lemmens · March 2026
 
 # The EAV Trap
 
-## How most CMS platforms store content
+## How Alfresco — and many ECM systems — store content
 
 <div class="columns">
 <div>
@@ -128,18 +248,19 @@ CREATE TABLE articles (
 
 <style scoped>
 .eav-layout { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
-.eav-top { display: flex; gap: 14px; }
-.eav-small { flex: 1; }
-.eav-small table { width: 100%; border-collapse: collapse; font-size: 0.62em; font-family: monospace; background: #f5f8fc; color: #1a2b3c; border-radius: 6px; overflow: hidden; border: 1px solid #d0e4f0; }
-.eav-small th { background: #e2eef7; color: #084772; padding: 5px 8px; text-align: left; font-size: 0.9em; letter-spacing: 0.04em; text-transform: uppercase; }
-.eav-small td { padding: 4px 8px; border-top: 1px solid #d0e4f0; }
-.eav-small caption { color: #5a7a95; font-size: 0.85em; font-style: italic; text-align: left; padding-bottom: 3px; font-family: monospace; }
-.eav-props table { width: 100%; border-collapse: collapse; font-size: 0.61em; font-family: monospace; background: #f5f8fc; color: #1a2b3c; border-radius: 6px; overflow: hidden; border: 1px solid #d0e4f0; }
+.eav-top { display: flex; gap: 24px; justify-content: center; align-items: flex-start; }
+.eav-small { display: flex; flex-direction: column; }
+.eav-small table { width: auto; border-collapse: collapse; font-size: 0.62em; font-family: monospace; background: #f5f8fc; color: #1a2b3c; border-radius: 6px; overflow: hidden; border: 1px solid #d0e4f0; }
+.eav-small th { background: #e2eef7; color: #084772; padding: 5px 14px; text-align: left; font-size: 0.9em; letter-spacing: 0.04em; text-transform: uppercase; }
+.eav-small td { padding: 4px 14px; border-top: 1px solid #d0e4f0; }
+.eav-small caption { color: #5a7a95; font-size: 0.85em; font-style: italic; text-align: left; padding: 0 10px 4px; font-family: monospace; }
+.eav-props { display: flex; justify-content: center; }
+.eav-props table { width: auto; border-collapse: collapse; font-size: 0.61em; font-family: monospace; background: #f5f8fc; color: #1a2b3c; border-radius: 6px; overflow: hidden; border: 1px solid #d0e4f0; }
 .eav-props th { background: #e2eef7; color: #084772; padding: 6px 10px; text-align: left; font-size: 0.9em; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 2px solid #d0e4f0; }
 .eav-props td { padding: 5px 10px; border-top: 1px solid #d0e4f0; }
 .eav-props td.null-val { color: #94a3b8; font-style: italic; }
 .eav-props td.has-val { color: #0f5c30; font-weight: 600; }
-.eav-props caption { color: #084772; font-size: 0.9em; font-style: italic; text-align: left; padding-bottom: 4px; font-family: monospace; font-weight: 700; }
+.eav-props caption { color: #084772; font-size: 0.9em; font-style: italic; text-align: left; padding: 0 12px 5px; font-family: monospace; font-weight: 700; }
 .callout-dark { background: #7f1d1d; color: #fecaca; border-radius: 6px; padding: 8px 16px; font-size: 0.68em; font-weight: 600; margin-top: 6px; text-align: center; letter-spacing: 0.01em; }
 </style>
 
@@ -192,7 +313,7 @@ CREATE TABLE articles (
 .bespoke-wrap table { width: 100%; border-collapse: collapse; font-size: 0.7em; font-family: monospace; background: #f5f8fc; border-radius: 8px; overflow: hidden; border-top: 4px solid #16a34a; }
 .bespoke-wrap th { background: #e8f5e9; color: #14532d; padding: 9px 14px; text-align: left; font-size: 0.88em; letter-spacing: 0.03em; border-bottom: 2px solid #bbf7d0; }
 .bespoke-wrap td { padding: 10px 14px; color: #1a2b3c; border-top: 1px solid #d1fae5; font-weight: 500; }
-.bespoke-wrap caption { color: #14532d; font-size: 0.85em; font-style: italic; text-align: left; padding-bottom: 6px; font-family: monospace; font-weight: 700; }
+.bespoke-wrap caption { color: #14532d; font-size: 0.85em; font-style: italic; text-align: left; padding: 0 14px 6px; font-family: monospace; font-weight: 700; }
 .type-pill { display: inline-block; background: #d1fae5; color: #065f46; border-radius: 99px; font-size: 0.72em; font-weight: 700; padding: 1px 8px; margin-left: 6px; font-family: monospace; vertical-align: middle; }
 .callout-green { background: #14532d; color: #dcfce7; border-radius: 6px; padding: 10px 18px; font-size: 0.72em; font-weight: 600; margin-top: 18px; text-align: center; letter-spacing: 0.01em; }
 </style>
@@ -435,7 +556,7 @@ section { font-size: 20px; }
   &#x2022; deployment</p></div>
 </div>
 
-<div class="tagline">Every model change → versioned, reviewed SQL migration &nbsp;·&nbsp; Schema always reflects the model — no manual DDL</div>
+<div class="tagline">Every model change → versioned, reviewed SQL migration <br /> Schema always reflects the model — no manual DDL</div>
 
 ---
 
@@ -503,6 +624,61 @@ CREATE TABLE article (
 # The Runtime Platform
 
 ## How a request flows from client to database
+
+<style scoped>
+.rt { display: flex; flex-direction: column; gap: 0; margin-top: 18px; }
+.rt-row  { display: flex; align-items: stretch; }
+.rt-conn { display: flex; align-items: center; height: 36px; }
+.n { flex: 1 1 0; min-width: 0; background: #f5f8fc; border: 1.5px solid #d0e4f0; border-top: 4px solid #019ee3; border-radius: 7px; padding: 10px 8px; text-align: center; }
+.n.teal  { border-top-color: #0e7c6b; }
+.n.navy  { border-top-color: #084772; }
+.n h4 { margin: 0 0 4px; font-size: 0.82em; color: #084772; font-weight: 700; }
+.n p  { margin: 0; font-size: 0.6em; color: #5a7a95; line-height: 1.35; }
+.a { flex: 0 0 54px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+.a .lbl { font-size: 0.5em; color: #64748b; text-align: center; line-height: 1.25; }
+.a .sym { font-size: 1.1em; color: #019ee3; line-height: 1; }
+.g { flex: 0 0 54px; }
+.v { flex: 1 1 0; min-width: 0; display: flex; justify-content: center; align-items: center; color: #94a3b8; font-size: 1.3em; }
+.e { flex: 1 1 0; min-width: 0; }
+.callout { background: #084772; color: #fff; border-radius: 6px; padding: 8px 16px; font-size: 0.68em; font-weight: 600; margin-top: 12px; text-align: center; }
+</style>
+
+<div class="rt">
+  <div class="rt-row">
+    <div class="n"><h4>Client</h4><p>browser · API consumer</p></div>
+    <div class="a"><span class="lbl">+ JWT</span><span class="sym">▶</span></div>
+    <div class="n"><h4>Gateway</h4><p>entry point · routing · CORS</p></div>
+    <div class="a"><span class="lbl">request</span><span class="sym">▶</span></div>
+    <div class="n"><h4>App Server</h4><p>model-driven REST · dynamic SQL</p></div>
+    <div class="a"><span class="lbl">SQL</span><span class="sym">▶</span></div>
+    <div class="n navy"><h4>PostgreSQL</h4><p>bespoke schema</p></div>
+  </div>
+  <div class="rt-conn">
+    <div class="v">↕</div>
+    <div class="g"></div>
+    <div class="e"></div>
+    <div class="g"></div>
+    <div class="e"></div>
+    <div class="g"></div>
+    <div class="e"></div>
+  </div>
+  <div class="rt-row">
+    <div class="n teal"><h4>Keycloak</h4><p>OIDC · issues JWT with user attributes</p></div>
+    <div class="g"></div>
+    <div class="e"></div>
+    <div class="g"></div>
+    <div class="e"></div>
+    <div class="g"></div>
+    <div class="e"></div>
+  </div>
+  <div class="callout">App Server reads the semantic model and generates SQL against each tenant's bespoke schema at request time</div>
+</div>
+
+---
+
+# Adding Authorization
+
+## OPA filters rows before they leave the database
 
 <style scoped>
 .rt { display: flex; flex-direction: column; gap: 0; margin-top: 18px; }
@@ -640,12 +816,216 @@ WHERE department = 'sales' OR status = 'published'</pre>
 
 ---
 
-# Roadmap
+# How most ECMs handle search
 
-- Full text search
-- Facetted Search
-- Searching over multiple entities (tables)
-- Versioning (QDA)
+<style scoped>
+.ecm-diag { max-width: 600px; margin: 60px auto 30px; }
+.ecm-diag .box { background: #f5f8fc; border: 2px solid #d0e4f0; border-top: 4px solid #019ee3; border-radius: 8px; padding: 18px 28px; text-align: center; }
+.ecm-diag .box.ext { border-top-color: #0e7c6b; }
+.ecm-diag .box h3 { color: #084772; margin: 0; font-size: 1em; font-weight: 700; }
+.ecm-diag .arrows { display: flex; justify-content: space-around; padding: 14px 0 6px; }
+.ecm-diag .arr { display: flex; flex-direction: column; align-items: center; }
+.ecm-diag .arr .glyph { font-size: 1.8em; line-height: 1; color: #019ee3; font-weight: 300; }
+.ecm-diag .arr .lbl { font-size: 0.72em; color: #5a7a95; font-style: italic; margin-top: 2px; }
+.ecm-diag .stores { display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.ecm-diag .stores .box { flex: 1; }
+.ecm-diag .sync { display: flex; flex-direction: column; align-items: center; padding: 0 4px; white-space: nowrap; }
+.ecm-diag .sync .glyph { font-size: 1.5em; line-height: 1; color: #019ee3; font-weight: 300; }
+.ecm-diag .sync .lbl { font-size: 0.7em; color: #019ee3; font-weight: 700; margin-top: 2px; }
+</style>
+
+<div class="ecm-diag">
+
+<div class="box"><h3>Application</h3></div>
+
+<div class="arrows">
+  <div class="arr"><span class="glyph">↓</span><span class="lbl">writes</span></div>
+  <div class="arr"><span class="glyph">↓</span><span class="lbl">search queries</span></div>
+</div>
+
+<div class="stores">
+  <div class="box"><h3>Primary database</h3></div>
+  <div class="sync"><span class="glyph">⇢</span><span class="lbl">async sync</span></div>
+  <div class="box ext"><h3>Search engine</h3></div>
+</div>
+
+</div>
+
+<div class="highlight">Two stores · one source of truth · eventually consistent</div>
+
+---
+
+# Costs of an external search index
+
+<style scoped>
+.cost-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0; }
+.cost { background: #f5f8fc; border-left: 4px solid #019ee3; border-radius: 6px; padding: 14px 18px; }
+.cost h3 { color: #084772; margin: 0 0 6px 0; font-size: 0.92em; }
+.cost p { margin: 0; font-size: 0.7em; color: #1a2b3c; line-height: 1.5; }
+</style>
+
+<div class="cost-grid">
+  <div class="cost">
+    <h3>Eventual consistency</h3>
+    <p>Writes become searchable after a delay — seconds to hours. Users hit a "not found" window.</p>
+  </div>
+  <div class="cost">
+    <h3>Operational overhead</h3>
+    <p>A second cluster to size, monitor, upgrade, and secure. Schema changes trigger reindex.</p>
+  </div>
+  <div class="cost">
+    <h3>Bugs cause divergence</h3>
+    <p>Dropped events and schema drift make the index silently disagree with the DB. Recovery = full reindex.</p>
+  </div>
+  <div class="cost">
+    <h3>Resource consumption</h3>
+    <p>Searchable corpus stored twice — CPU, memory, storage per tenant per environment.</p>
+  </div>
+</div>
+
+<div class="highlight">An external search tier is a second distributed system to design, operate, and reason about</div>
+
+---
+
+# Searchable fields, declared in the model
+
+<style scoped>
+.filter-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 18px 0; }
+.filter { background: #f5f8fc; border-top: 4px solid #019ee3; border-radius: 6px; padding: 14px 16px; }
+.filter h3 { color: #084772; margin: 0 0 8px; font-size: 0.92em; }
+.filter pre { margin: 0; font-size: 0.65em; background: #fff; border: 1px solid #d0e4f0; border-radius: 4px; padding: 8px 10px; color: #1a2b3c; }
+.filter .desc { margin: 6px 0 0; font-size: 0.68em; color: #5a7a95; }
+</style>
+
+<div class="filter-grid">
+  <div class="filter">
+    <h3>Exact</h3>
+    <pre>title = $1</pre>
+    <div class="desc">Standard btree index</div>
+  </div>
+  <div class="filter">
+    <h3>Prefix</h3>
+    <pre>normalize(title)
+  LIKE normalize($1) || '%'</pre>
+    <div class="desc">Functional btree range scan</div>
+  </div>
+  <div class="filter">
+    <h3>Full-text</h3>
+    <pre>to_tsvector('english',
+    normalize(body))
+  @@ websearch_to_tsquery(
+    'english', normalize($1))</pre>
+    <div class="desc">Per-property language, GIN index</div>
+  </div>
+</div>
+
+<div class="highlight">Three index-friendly query shapes — no Solr, no Elasticsearch</div>
+
+---
+
+# Exact + prefix: encoding matters
+
+<style scoped>
+.norm-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 18px 0; }
+.norm { background: #f5f8fc; border-top: 4px solid #019ee3; border-radius: 6px; padding: 14px 16px; text-align: center; }
+.norm h3 { color: #084772; margin: 0 0 6px; font-size: 0.92em; }
+.norm .from { font-size: 1.1em; color: #7c2d2d; font-weight: 600; }
+.norm .arrow { font-size: 1.3em; color: #019ee3; margin: 4px 0; }
+.norm .to { font-size: 1.1em; color: #14532d; font-weight: 600; }
+.norm .desc { margin: 8px 0 0; font-size: 0.68em; color: #5a7a95; }
+</style>
+
+<div class="norm-grid">
+  <div class="norm">
+    <h3>NFKC</h3>
+    <div class="from">cafe&#769;</div>
+    <div class="arrow">→</div>
+    <div class="to">café</div>
+    <div class="desc">Unicode normalization</div>
+  </div>
+  <div class="norm">
+    <h3>lower()</h3>
+    <div class="from">Café</div>
+    <div class="arrow">→</div>
+    <div class="to">café</div>
+    <div class="desc">Case fold</div>
+  </div>
+  <div class="norm">
+    <h3>unaccent()</h3>
+    <div class="from">café</div>
+    <div class="arrow">→</div>
+    <div class="to">cafe</div>
+    <div class="desc">Strip diacritics</div>
+  </div>
+</div>
+
+<div class="highlight">Composed into one <code>IMMUTABLE PARALLEL SAFE</code> function — eligible for functional btree index</div>
+
+---
+
+# Full-text search
+
+<style scoped>
+.fts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 16px 0; }
+.fts-card { background: #f5f8fc; border-top: 4px solid #019ee3; border-radius: 6px; padding: 14px 16px; }
+.fts-card h3 { color: #084772; margin: 0 0 8px; font-size: 0.9em; }
+.fts-card pre { margin: 0; font-size: 0.65em; background: #fff; border: 1px solid #d0e4f0; border-radius: 4px; padding: 8px 10px; color: #1a2b3c; }
+.fts-card .desc { margin: 6px 0 0; font-size: 0.68em; color: #5a7a95; }
+</style>
+
+<div class="fts-grid">
+  <div class="fts-card">
+    <h3>Per-property language</h3>
+    <pre>ENGLISH  → "english"
+FRENCH   → "french"
+Dutch    → "dutch"</pre>
+    <div class="desc">Locale → PostgreSQL FTS dictionary</div>
+  </div>
+  <div class="fts-card">
+    <h3>Generated SQL</h3>
+    <pre>to_tsvector('english',
+    normalize(body))
+  @@ websearch_to_tsquery(
+    'english', normalize($1))</pre>
+    <div class="desc">Same normalize() as prefix search</div>
+  </div>
+</div>
+
+<div class="highlight">Per-tenant tables · per-property language · zero external search service</div>
+
+---
+
+# The Future of Search
+
+## ParadeDB — advanced search, still in PostgreSQL
+
+<style scoped>
+.road-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0; }
+.road { background: #f5f8fc; border-left: 4px solid #019ee3; border-radius: 6px; padding: 14px 18px; }
+.road h3 { color: #084772; margin: 0 0 6px 0; font-size: 0.92em; }
+.road p { margin: 0; font-size: 0.7em; color: #1a2b3c; line-height: 1.5; }
+</style>
+
+<div class="road-grid">
+  <div class="road">
+    <h3>Faceted search</h3>
+    <p>Aggregate result counts per attribute value — without a separate aggregation pipeline.</p>
+  </div>
+  <div class="road">
+    <h3>Next-gen FTS</h3>
+    <p>BM25 scoring, relevance ranking, and richer query syntax via ParadeDB's <code>pg_search</code> extension.</p>
+  </div>
+  <div class="road">
+    <h3>Hit highlighting</h3>
+    <p>Return the matching text fragment alongside the document — no post-processing in the app layer.</p>
+  </div>
+  <div class="road">
+    <h3>Cross-entity search</h3>
+    <p>Search across multiple tables in one query — joins already in the bespoke schema.</p>
+  </div>
+</div>
+
+<div class="highlight">More search features · still one database · still transactional</div>
 
 ---
 
@@ -657,6 +1037,7 @@ WHERE department = 'sales' OR status = 'published'</pre>
 - Native schemas: 20× smaller, full SQL tooling, real constraints
 - ContentGrid generates & migrates schemas from a semantic model
 - Security boundary enforced inside PostgreSQL via partial evaluation
+- Advanced search — keeping everything in one database
 
 ---
 
