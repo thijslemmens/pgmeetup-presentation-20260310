@@ -94,7 +94,7 @@ h1 { font-size: 38px; margin-bottom: 14px; padding-bottom: 8px; }
 <div class="label">Where you find ECM</div>
 <ul>
 <li><b>Insurance</b> — claim files: correspondence, expert reports, photos, payouts</li>
-<li><b>Banking</b> — KYC packs, contracts, statements</li>
+<li><b>Banking</b> — contracts, statements</li>
 <li><b>HR</b> — employee files, contracts, reviews</li>
 <li><b>Legal · engineering · government</b> — case files, drawings, citizen records</li>
 </ul>
@@ -104,9 +104,9 @@ h1 { font-size: 38px; margin-bottom: 14px; padding-bottom: 8px; }
 <ul>
 <li>Store documents alongside their structured metadata</li>
 <li><b>Search</b> — by metadata filters and full-text content (the primary user action)</li>
-<li>Access control per document, often per attribute</li>
+<li>Access control per document</li>
 <li>Retention, versioning, audit — data outlives the apps</li>
-<li>Volume: millions to billions of objects per tenant</li>
+<li>Volume: millions to billions of objects</li>
 </ul>
 </div>
 </div>
@@ -137,7 +137,7 @@ h1 { font-size: 38px; margin-bottom: 12px; padding-bottom: 8px; }
 .note { margin-top: 14px; background: #f5f8fc; border-left: 4px solid #019ee3; border-radius: 6px; padding: 10px 18px; font-size: 20px; color: #084772; text-align: center; }
 </style>
 
-<div class="intro">Each customer defines their own document types — <code>claim</code>, <code>policy_endorsement</code>, <code>expert_report</code> — and they keep changing. A product serving thousands of tenants has to absorb that variability somewhere. There are two honest places to put it.</div>
+<div class="intro">Each customer defines their own document types — <code>claim</code>, <code>policy_endorsement</code>, <code>expert_report</code> — and they keep changing. A product serving thousands of clients has to absorb that variability somewhere. There are two honest places to put it.</div>
 
 <div class="paths">
 <div class="path">
@@ -1000,8 +1000,8 @@ Dutch    → "dutch"</pre>
 ## ParadeDB — advanced search, still in PostgreSQL
 
 <style scoped>
-.road-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0; }
-.road { background: #f5f8fc; border-left: 4px solid #019ee3; border-radius: 6px; padding: 14px 18px; }
+.road-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 18px 0; }
+.road { background: #f5f8fc; border-top: 4px solid #019ee3; border-radius: 6px; padding: 14px 18px; }
 .road h3 { color: #084772; margin: 0 0 6px 0; font-size: 0.92em; }
 .road p { margin: 0; font-size: 0.7em; color: #1a2b3c; line-height: 1.5; }
 </style>
@@ -1009,19 +1009,27 @@ Dutch    → "dutch"</pre>
 <div class="road-grid">
   <div class="road">
     <h3>Faceted search</h3>
-    <p>Aggregate result counts per attribute value — without a separate aggregation pipeline.</p>
+    <p>Aggregate result counts per attribute value</p>
   </div>
   <div class="road">
-    <h3>Next-gen FTS</h3>
-    <p>BM25 scoring, relevance ranking, and richer query syntax via ParadeDB's <code>pg_search</code> extension.</p>
+    <h3>Next-gen FTS + ranking</h3>
+    <p>BM25 scoring, relevance-ordered results via <code>pg_search</code></p>
   </div>
   <div class="road">
     <h3>Hit highlighting</h3>
-    <p>Return the matching text fragment alongside the document — no post-processing in the app layer.</p>
+    <p>Return matching text fragments</p>
   </div>
   <div class="road">
     <h3>Cross-entity search</h3>
-    <p>Search across multiple tables in one query — joins already in the bespoke schema.</p>
+    <p>Search across multiple tables</p>
+  </div>
+  <div class="road">
+    <h3>Suggestions</h3>
+    <p>Autocomplete as-you-type</p>
+  </div>
+  <div class="road">
+    <h3>Semantic search</h3>
+    <p>Vector embeddings via <code>pgvector</code></p>
   </div>
 </div>
 
@@ -1038,6 +1046,14 @@ Dutch    → "dutch"</pre>
 - ContentGrid generates & migrates schemas from a semantic model
 - Security boundary enforced inside PostgreSQL via partial evaluation
 - Advanced search — keeping everything in one database
+
+---
+
+<!-- _class: center -->
+
+# ContentGrid is Open Source
+
+**github.com/xenit-eu/contentgrid-appserver**
 
 ---
 
